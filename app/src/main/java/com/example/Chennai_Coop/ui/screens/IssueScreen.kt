@@ -192,6 +192,7 @@ fun IssueScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
             // --- STICKY BOTTOM ACTION BAR ---
             Surface(
@@ -333,37 +334,40 @@ fun IssueScreen(
             }
         }
     ) { innerPadding ->
+        // innerPadding naturally handles the BottomBar AND Keyboard height
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                // IMPORTANT: We only apply the bottom padding (for the search bar).
-                // We handle Top padding inside the Column to be more precise or eliminate it.
-                .padding(bottom = innerPadding.calculateBottomPadding())
+                .padding(innerPadding)
         ) {
-            // 1. MAIN CONTENT (Bottom Layer)
+            // 1. MAIN CONTENT
             if (viewModel.member != null) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp)
-                        // Add just the system status bar height so it doesn't overlap time/battery
-                        .padding(top = innerPadding.calculateTopPadding()),
+                        .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // No top spacer here. The content will start exactly below the status bar.
+                    // Spacer adds margin for status bar
                     MemberDetailsCard(member = viewModel.member!!)
-
-                    // Extra spacer at bottom so content isn't hidden by bottom bar
                     Spacer(modifier = Modifier.height(20.dp))
                 }
             } else {
-                // Empty State
+                // --- FIXED EMPTY STATE LAYOUT ---
                 Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()) // Allow scroll if screen is tiny
+                        .padding(horizontal = 32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // This spacer pushes content down from the top (Status Bar safe)
+                    Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+
+                    // This weight spacer pushes content to the vertical center
+                    Spacer(Modifier.weight(1f))
+
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -392,6 +396,9 @@ fun IssueScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
+
+                    // This weight spacer ensures content stays centered but has space at bottom
+                    Spacer(Modifier.weight(1f))
                 }
             }
 
