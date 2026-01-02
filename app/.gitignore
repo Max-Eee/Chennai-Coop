@@ -1,0 +1,11 @@
+/build
+/release
+
+# Generated files
+/generated
+/intermediates
+/outputs
+/tmp
+
+# Android Profiling
+*.hprof
